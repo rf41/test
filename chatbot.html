@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Kemenkeu</title>
+
+    <!-- CSS untuk BotUI -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/botui/build/botui.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/botui/build/botui-theme-default.css">
+
+    <!-- JavaScript untuk BotUI dan Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+    <script src="https://cdn.jsdelivr.net/npm/botui/build/botui.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        #chat-app {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .botui-actions-text-input {
+            width: 100% !important;
+        }
+    </style>
+</head>
+<body>
+<div width=100%>
+    <h3 align="center"> Prototype chatbot asisten personal keamanan informasi</h3>
+</div>
+<div id="chat-app">
+    <bot-ui></bot-ui>
+</div>
+
+<script>
+    var botui = new BotUI('chat-app');
+    var currentStep = 0;
+
+    function nextStep() {
+        if (currentStep === 0) {
+            botui.message.add({
+                content: 'Halo, Saya adalah asisten keamanan informasi personal Anda! Ada yang bisa dibantu?'
+            }).then(function () {
+                return botui.action.text({
+                    action: {
+                        placeholder: 'Tulis kalimat yang mengandung kata kunci "aktivitas mencurigakan"'
+                    }
+                });
+            }).then(function (res) {
+                if (res.value.toLowerCase().includes('aktivitas mencurigakan')) {
+                    currentStep++;
+                    nextStep();
+                } else {
+                    handleUnrecognizedInput();
+                }
+            });
+        }
+
+        if (currentStep === 1) {
+            botui.message.add({
+                content: 'Kami mendeteksi aktivitas login berulang dari IP yang tidak dikenal, serta akses surat rahasia beberapa kali.'
+            }).then(function () {
+                return botui.action.text({
+                    action: {
+                        placeholder: 'Tulis kalimat yang mengandung kata kunci "detail"'
+                    }
+                });
+            }).then(function (res) {
+                if (res.value.toLowerCase().includes('detail')) {
+                    currentStep++;
+                    nextStep();
+                } else {
+                    handleUnrecognizedInput();
+                }
+            });
+        }
+
+        if (currentStep === 2) {
+            botui.message.add({
+                content: 'Terdapat aktivitas Login pada akun Anda yang berasal dari IP 192.168.1.100 pada 10 Oktober 2024 23:00. '
+            });
+            botui.message.add({
+                content: 'Kemudian akun Anda terdeteksi mengakses kembali ND rahasia ND-2024-01 pada 11 Oktober 2024.'
+            }).then(function () {
+                return botui.message.add({
+                    content: 'Apakah ada informasi lain yang ingin Anda ketahui?'
+                });
+            }).then(function () {
+                return botui.action.text({
+                    action: {
+                        placeholder: 'Tulis kalimat yang mengandung kata kunci "saran"'
+                    }
+                });
+            }).then(function (res) {
+                if (res.value.toLowerCase().includes('saran')) {
+                    currentStep++;
+                    nextStep();
+                } else if (res.value.toLowerCase().includes('tidak')) {
+                    currentStep = 4; // Kembali ke percakapan awal
+                    nextStep();
+                } else {
+                    location.reload(); // Refresh halaman untuk input lain
+                }
+            });
+        }
+
+        if (currentStep === 3) {
+            botui.message.add({
+                content: 'Berdasarkan KMK No 411 Tahun 2023, sebaiknya Anda segera melakukan reset password akun Satu Kemenkeu Anda. Anda dapat melakukan reset password dengan mengklik forgot password pada laman login Satu Kemenkeu atau melalui layanan servicedesk.kemenkeu.go.id.'
+            }).then(function () {
+                return botui.message.add({
+                    content: 'Apakah ada yang bisa saya bantu lagi?'
+                });
+            }).then(function () {
+                return botui.action.text({
+                    action: {
+                        placeholder: 'Tulis kalimat yang mengandung kata kunci "tidak" untuk mengakhiri percakapan'
+                    }
+                });
+            }).then(function (res) {
+                if (res.value.toLowerCase().includes('aktivitas mencurigakan')) {
+                    currentStep = 0; // Kembali ke awal percakapan
+                    nextStep();
+                } else if (res.value.toLowerCase().includes('tidak')) {
+                    currentStep++;
+                    nextStep();
+                } else {
+                    location.reload(); // Refresh halaman jika input lainnya
+                }
+            });
+        }
+
+        if (currentStep === 4) {
+            botui.message.add({
+                content: 'Baik, terimakasih.'
+            }).then(function () {
+                return botui.action.text({
+                    action: {
+                        placeholder: 'Refresh halaman untuk mulai dari awal.'
+                    }
+                })
+			});
+        }
+    }
+
+    // Fungsi ketika input tidak dikenali
+    function handleUnrecognizedInput() {
+        botui.message.add({
+            content: 'Maaf, saya tidak mengerti pertanyaan Anda. Silakan tulis ulang pertanyaan Anda.'
+        }).then(function () {
+            return botui.action.text({
+                action: {
+                    placeholder: 'Tulis kalimat yang mengandung kata kunci "aktivitas mencurigakan"'
+                }
+            });
+        }).then(function (res) {
+            if (res.value.toLowerCase().includes('aktivitas mencurigakan')) {
+                currentStep = 1;
+            } else if (res.value.toLowerCase().includes('detail')) {
+                currentStep = 2;
+            } else if (res.value.toLowerCase().includes('saran')) {
+                currentStep = 3;
+            } else if (res.value.toLowerCase().includes('aktivitas mencurigakan')) {
+                currentStep = 0;
+            } else if (res.value.toLowerCase().includes('tidak')) {
+                currentStep = 4;
+            } else {
+                location.reload();
+            }
+            nextStep();
+        });
+    }
+
+    // Mulai percakapan
+    nextStep();
+</script>
+</body>
+</html>
